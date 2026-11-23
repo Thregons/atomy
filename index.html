@@ -66,6 +66,10 @@ p{margin:0 0 10px;font-size:.9rem}
 .list{display:grid;gap:9px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 13px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:start}
 .card.in{border-color:var(--accent)}
+.card.hasimg{grid-template-columns:64px 1fr auto}
+.hasimg .nm,.hasimg .meta{grid-column:2}
+.hasimg .right{grid-column:3}
+.th{grid-column:1;grid-row:1/span 2;width:64px;height:64px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line)}
 .nm{font-weight:800;font-size:.9rem;line-height:1.3;margin:0}
 .meta{grid-column:1;display:flex;flex-wrap:wrap;gap:4px 9px;font-size:.73rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px;align-items:center}
 .meta a{color:var(--brand);text-decoration:underline;text-underline-offset:2px}
@@ -352,6 +356,8 @@ const P=[
 {c:"R92496",n:"Пакет (маленький)",g:17,m:15,pv:0,k:"other",u:"Пакет",l:0,t:"пакет упаковка"}
 ];
 
+const IMG_BASE="https://image.atomy.ru/480_480/RU/goods/";
+const IMG={R00001:"org/612/250523000041612.jpg",R00002:"org/605/250523000041605.jpg",R00121:"org/776/261027000043776.jpg",R00111:"org/778/250730000042778.jpg",R00178:"org/563/250523000041563.jpg",R00164:"org/557/250523000041557.jpg",R00185:"org/938/251223000042938.png",R00120:"org/534/250523000041534.jpg",R16085:"org/714/261012000043714.jpg",R16086:"org/717/261012000043717.jpg",R16087:"org/720/261012000043720.jpg",R00305:"org/256/250523000042256.jpg",R00325:"org/232/250523000042232.jpg",R00198:"org/723/250523000041723.png",R00267:"org/796/250523000041796.png",R00757:"org/958/250523000041958.png",R00467:"org/904/250523000041904.png",R00460:"org/250/250523000042250.png",R00261:"org/918/251209000042918.png",R00266:"org/238/250523000042238.png",R01422:"org/378/260605000043378.jpg",R00694:"org/472/250523000042472.png",R00601:"org/560/250523000042560.png",R00661:"org/605/250524000042605.jpg",R00681:"org/497/250523000042497.jpg",R00693:"org/478/250523000042478.png",R00523:"org/766/250523000041766.jpg",R00505:"org/920/251209000042920.jpg",R00509:"org/802/250523000041802.png",R00510:"org/778/250523000041778.jpg",R00520:"org/889/251114000042889.png",R00541:"org/852/250523000041852.jpg",R00535:"org/875/250523000041875.jpg",R00528:"org/864/250523000041864.png",R00631:"org/981/250523000041981.png",R00553:"org/094/250523000042094.jpg",R02309:"org/711/250523000041711.jpg",R00828:"org/962/250523000041962.png",R00826:"org/992/250523000041992.png",R02312:"org/036/250523000042036.png",R00829:"org/937/250523000041937.png",R00832:"org/618/250524000042618.jpg",R00835:"org/620/250524000042620.jpg",R00973:"org/254/260424000043254.jpg",R00975:"org/260/260424000043260.jpg",R92495:"org/625/250524000042625.jpg",R92496:"org/632/250524000042632.jpg"};
 const CATS=[["all","Всё"],["health","Здоровье"],["beauty","Лицо и макияж"],["hair","Волосы"],["hygiene","Гигиена"],["home","Дом"],["food","Кофе"],["other","Прочее"]];
 
 const SETS=[
@@ -457,7 +463,9 @@ function postText(p){
 
 function card(p){
   const on=sel.has(p.c), saving=p.g-p.m;
-  return `<article class="card${on?" in":""}">
+  const im=IMG[p.c]?IMG_BASE+p.c+"/"+IMG[p.c]:"";
+  return `<article class="card${on?" in":""}${im?" hasimg":""}">
+    ${im?`<img class="th" src="${im}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.remove('hasimg');this.remove()">`:""}
     <h3 class="nm">${p.n}</h3>
     <div class="meta">
       <span class="tag">${p.u}</span>
