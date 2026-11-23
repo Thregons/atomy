@@ -1,0 +1,719 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Атоми Навигатор</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Unbounded:wght@600&display=swap">
+<style>
+/* Layout: mobile-first column, sticky search header, scrolling tabs, fixed basket bar.
+   Brand blue = navigation and identity, green = money and benefit, amber = PV. */
+:root{
+  --bg:#f7f5f0; --surface:#ffffff; --surface-2:#edeae2;
+  --ink:#14201d; --muted:#67756f; --line:#ded9ce;
+  --brand:#1a8fd0; --brand-soft:#e2f1fa;
+  --accent:#0d6b52; --accent-soft:#e2efe9; --gold:#8f5d16;
+  --display:"Unbounded","Manrope",system-ui,sans-serif;
+  --text:"Manrope",system-ui,-apple-system,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1211; --surface:#161e1c; --surface-2:#1e2826;
+  --ink:#e9efec; --muted:#90a19b; --line:#2a3634;
+  --brand:#56c2f0; --brand-soft:#12293a;
+  --accent:#46c198; --accent-soft:#16302a; --gold:#d6a257;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0d1211; --surface:#161e1c; --surface-2:#1e2826;
+  --ink:#e9efec; --muted:#90a19b; --line:#2a3634;
+  --brand:#56c2f0; --brand-soft:#12293a;
+  --accent:#46c198; --accent-soft:#16302a; --gold:#d6a257;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--text);margin:0;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--surface)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:860px;margin:0 auto}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:2px solid var(--brand)}
+.hrow{display:flex;align-items:baseline;gap:10px;padding-block:12px 8px;flex-wrap:wrap}
+.brandname{font-family:var(--display);font-size:1.12rem;letter-spacing:-.02em;margin:0}
+.brandname .b{color:var(--brand)}
+.brandname .a{color:var(--accent)}
+.count{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.themebtn{margin-left:auto;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:4px 10px;font:inherit;font-size:.7rem;cursor:pointer}
+.searchrow{display:flex;gap:8px;padding-bottom:10px}
+#q{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;font:inherit;font-size:.92rem;color:var(--ink)}
+#q::placeholder{color:var(--muted)}
+#q:focus,input:focus{outline:2px solid var(--brand);outline-offset:1px}
+.pricetog{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.pricetog button{background:none;border:0;font:inherit;font-size:.72rem;font-weight:600;padding:0 11px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.pricetog button[aria-pressed="true"]{background:var(--brand);color:#fff}
+nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;background:none;border:0;border-radius:999px;padding:7px 14px;font:inherit;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer}
+nav button[aria-selected="true"]{background:var(--brand);color:#fff}
+
+main{padding-block:16px 130px}
+h2{font-family:var(--display);font-size:1.02rem;letter-spacing:-.01em;margin:26px 0 10px;text-wrap:balance}
+h2:first-child{margin-top:4px}
+h3{font-size:.92rem;font-weight:800;margin:18px 0 6px}
+p{margin:0 0 10px;font-size:.9rem}
+.lede{color:var(--muted);font-size:.84rem;margin-bottom:14px}
+
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font:inherit;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+
+.list{display:grid;gap:9px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 13px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:start}
+.card.in{border-color:var(--accent)}
+.nm{font-weight:800;font-size:.9rem;line-height:1.3;margin:0}
+.meta{grid-column:1;display:flex;flex-wrap:wrap;gap:4px 9px;font-size:.73rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px;align-items:center}
+.meta a{color:var(--brand);text-decoration:underline;text-underline-offset:2px}
+.tag{background:var(--surface-2);border-radius:5px;padding:1px 6px;font-size:.68rem;font-weight:600}
+.tag.new{background:var(--brand-soft);color:var(--brand)}
+.mini{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:1px 7px;font:inherit;font-size:.68rem;font-weight:600;cursor:pointer}
+.right{grid-column:2;grid-row:1/span 2;text-align:right;display:grid;gap:5px;justify-items:end}
+.pr{font-family:var(--display);font-size:1.02rem;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.was{font-size:.7rem;color:var(--muted);text-decoration:line-through;font-variant-numeric:tabular-nums}
+.pv{font-size:.7rem;color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums}
+.add{background:var(--surface-2);border:1px solid var(--line);color:var(--ink);border-radius:9px;width:32px;height:32px;font:inherit;font-size:1.05rem;line-height:1;cursor:pointer}
+.add[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.empty{color:var(--muted);font-size:.86rem;padding:24px 0;text-align:center}
+
+.set{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.set h3{margin:0 0 3px}
+.set .why{font-size:.8rem;color:var(--muted);margin:0 0 9px}
+.set ul{margin:0 0 10px;padding-left:17px;font-size:.84rem}
+.set li{margin-bottom:2px}
+.setfoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:9px}
+.sum{font-family:var(--display);font-size:1rem;font-variant-numeric:tabular-nums}
+.sumpv{font-size:.73rem;color:var(--gold);font-weight:600;font-variant-numeric:tabular-nums}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:9px;padding:8px 14px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;margin-left:auto}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
+.btn.wide{margin:0;width:100%}
+
+.box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.box p:last-child{margin-bottom:0}
+.note{background:var(--brand-soft);border:1px solid var(--brand);border-radius:var(--r);padding:12px 14px;font-size:.82rem;margin-bottom:12px}
+.note strong{display:block;margin-bottom:3px}
+.warn{border-color:var(--gold);background:var(--surface);border-left:3px solid var(--gold)}
+dl{margin:0}
+dt{font-weight:800;font-size:.86rem;margin-top:12px}
+dt:first-child{margin-top:0}
+dd{margin:2px 0 0;font-size:.84rem;color:var(--muted)}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.8rem;min-width:300px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.script{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:13px;margin-bottom:9px}
+.script .qq{font-weight:800;font-size:.86rem;margin:0 0 6px}
+.script p{font-size:.85rem;margin:0}
+.copy{background:none;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:4px 9px;font:inherit;font-size:.7rem;cursor:pointer;margin-top:8px}
+
+.field{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.field label{font-size:.8rem;font-weight:600;flex:0 0 auto;min-width:68px}
+input[type="text"],input[type="number"]{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;font-size:.86rem;color:var(--ink);min-width:0;flex:1}
+input.num{width:92px;flex:0 0 auto;text-align:right;font-variant-numeric:tabular-nums}
+.who{font-size:.78rem;color:var(--muted);margin:0}
+.who b{color:var(--brand);font-variant-numeric:tabular-nums}
+.sv-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.sv-row:last-of-type{border-bottom:0}
+.sv-name{font-size:.84rem;font-weight:600;min-width:0}
+.sv-name small{display:block;font-weight:400;color:var(--muted);font-size:.72rem}
+.sv-at{font-size:.84rem;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.result{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r);padding:14px;margin-top:12px;text-align:center}
+.result .big{font-family:var(--display);font-size:1.6rem;line-height:1.1;color:var(--accent);font-variant-numeric:tabular-nums;display:block}
+.result .cap{font-size:.78rem;color:var(--muted);margin-top:4px;display:block}
+
+/* stock */
+.st{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.st.soon{border-color:var(--gold);border-left:3px solid var(--gold)}
+.st .snm{font-weight:800;font-size:.86rem;margin:0}
+.st .sinfo{font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.st .sinfo b{color:var(--gold)}
+.track{grid-column:1/-1;height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.track i.low{background:var(--gold)}
+
+/* trainer */
+.train{background:var(--surface);border:1px solid var(--brand);border-radius:var(--r);padding:16px;text-align:center}
+.train .obj{font-family:var(--display);font-size:1.05rem;margin:0 0 12px;text-wrap:balance}
+.train .ans{font-size:.88rem;text-align:left;margin:0 0 12px}
+.modetog{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:12px}
+.modetog button{background:none;border:0;font:inherit;font-size:.76rem;font-weight:600;padding:6px 14px;color:var(--muted);cursor:pointer}
+.modetog button[aria-pressed="true"]{background:var(--brand);color:#fff}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.barin{display:flex;align-items:center;gap:10px;padding-block:10px;flex-wrap:wrap}
+.barin .sum{font-size:1.05rem}
+.clr{background:none;border:0;color:var(--muted);font:inherit;font-size:.74rem;text-decoration:underline;cursor:pointer;padding:0}
+.cta{display:grid;gap:8px;margin:18px 0 8px}
+.cta a{display:block;text-align:center;border-radius:10px;padding:12px;font-weight:700;font-size:.88rem;text-decoration:none}
+.cta .reg{background:var(--brand);color:#fff}
+.cta .ask{background:none;color:var(--brand);border:1.5px solid var(--brand)}
+footer{color:var(--muted);font-size:.72rem;padding-block:0 4px}
+@media (min-width:620px){.list{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.track i{transition:width .3s}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <h1 class="brandname"><span class="b">Атоми</span> <span class="a">Навигатор</span></h1>
+      <span class="count" id="cnt"></span>
+      <button class="themebtn" id="theme" type="button">Тема</button>
+    </div>
+    <div class="searchrow">
+      <input id="q" type="search" placeholder="Поиск: шампунь, зубы, PV, ХемоХИМ, R00001…" autocomplete="off">
+      <div class="pricetog" role="group" aria-label="Какую цену показывать">
+        <button type="button" id="pGuest" aria-pressed="false">Гость</button>
+        <button type="button" id="pMember" aria-pressed="true">Партнёр</button>
+      </div>
+    </div>
+    <nav role="tablist">
+      <button role="tab" aria-selected="true" data-tab="catalog">Каталог</button>
+      <button role="tab" aria-selected="false" data-tab="sets">Под задачу</button>
+      <button role="tab" aria-selected="false" data-tab="stock">Запасы</button>
+      <button role="tab" aria-selected="false" data-tab="save">Выгода</button>
+      <button role="tab" aria-selected="false" data-tab="biz">Бизнес</button>
+      <button role="tab" aria-selected="false" data-tab="talk">Ответы</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="catalog">
+    <div class="chips" id="chips"></div>
+    <div class="list" id="list"></div>
+    <p class="empty" id="empty" hidden>Ничего не нашлось. Попробуй другое слово — например «волосы», «стирка», «витамин».</p>
+  </section>
+
+  <section id="sets" hidden>
+    <p class="lede">Подбор от задачи, а не от полки. Суммы считаются по цене, выбранной вверху.</p>
+    <div id="setlist"></div>
+  </section>
+
+  <section id="stock" hidden>
+    <h2>Что скоро кончится</h2>
+    <div id="stockmine"></div>
+    <h2>Отметить покупку</h2>
+    <p class="lede">Жми «Купил» в день заказа — приложение само посчитает, когда пора повторить. Сроки средние, от расхода зависят сильно.</p>
+    <div class="chips" id="stchips"></div>
+    <div id="stocklist"></div>
+  </section>
+
+  <section id="save" hidden>
+    <h2>Сколько ты переплачиваешь</h2>
+    <p class="lede">Впиши, сколько уходит в месяц на каждую категорию сейчас. Слева — во столько же обойдётся Атоми.</p>
+    <div class="box" id="svbox"></div>
+    <div class="result">
+      <span class="big" id="svYear">—</span>
+      <span class="cap" id="svCap">разница за год</span>
+    </div>
+    <p class="lede" style="margin-top:12px">Сроки расхода средние: сколько хватит в реальности, зависит от того, сколько человек в семье и как часто стирают.</p>
+    <button class="btn wide" type="button" id="svCopy">Скопировать расчёт текстом</button>
+  </section>
+
+  <section id="biz" hidden>
+    <h2>Кто приглашает</h2>
+    <div class="box">
+      <p style="font-size:.84rem">Впиши свои данные — все кнопки в приложении начнут вести на тебя. Хранится только в этом телефоне.</p>
+      <div class="field"><label for="refin">Номер</label><input type="text" id="refin" inputmode="numeric" maxlength="12" placeholder="47158381"></div>
+      <div class="field"><label for="nmin">Имя</label><input type="text" id="nmin" maxlength="30" placeholder="Руслан"></div>
+      <div class="field"><label for="tgin">Телеграм</label><input type="text" id="tgin" maxlength="40" placeholder="uatomy"></div>
+      <button class="btn wide" type="button" id="refsave">Сохранить</button>
+      <p class="who" id="refwho" style="margin-top:10px"></p>
+      <button class="copy" type="button" id="refcopy" style="margin-top:10px">Скопировать свою ссылку на приложение</button>
+      <p class="who" style="margin-top:8px">Передай эту ссылку своей команде — у них приложение откроется с их приглашением, а не с чужим.</p>
+    </div>
+
+    <h2>Что такое PV</h2>
+    <div class="box">
+      <p>PV (Point Value) — балл, который начисляется за покупку. От рубля он отличается: у двух товаров одной цены PV может быть разным. Весь расчёт вознаграждения строится на PV, а не на сумме чека.</p>
+      <p>Главное отличие Атоми от большинства сетевых компаний: <strong>PV не сгорают в конце месяца</strong>, а копятся дальше.</p>
+    </div>
+
+    <h2>PV на рубль — где он выгоднее</h2>
+    <p class="lede">Отношение PV к цене партнёра. Чем выше, тем больше баллов приносит тот же вложенный рубль.</p>
+    <div class="tablewrap"><table id="pvtable"></table></div>
+
+    <h2>Как устроен доход</h2>
+    <div class="box">
+      <p>Структура бинарная: у партнёра две ветки — левая и правая. Ежедневно считается групповой объём PV по каждой ветке, и вознаграждение начисляется по <strong>меньшей</strong> из двух. Поэтому обе ветки развивают параллельно.</p>
+      <p>Накопленный объём не обнуляется: то, что не сложилось в пару сегодня, остаётся в активе ветки.</p>
+      <p>Дальше идёт лестница рангов — от Sales Master вверх. Каждый следующий ранг требует определённого количества квалифицированных партнёров в каждой ветке и открывает свой бонусный пул.</p>
+    </div>
+    <div class="note warn"><strong>Сверь цифры перед разговором</strong>Пороги, проценты и названия рангов различаются по странам и периодически меняются. Актуальные условия по России — только в личном кабинете, в разделе «Маркетинг план». Цифры из чужих презентаций в интернете часто устарели или относятся к другому рынку.</div>
+
+    <h2>Калькулятор подборки</h2>
+    <p class="lede">Добавляй товары плюсиком в каталоге — внизу считается сумма и PV.</p>
+    <div class="box" id="calcbox"></div>
+
+    <h2>Что обещать нельзя</h2>
+    <div class="box">
+      <p>По БАДам и косметике не используй: «лечит», «помогает при болезни», «повышает иммунитет», «выводит токсины», «клинически доказано» без ссылки на исследование.</p>
+      <p>Это претензии на медицинский эффект. Нарушение закона о рекламе, плюс риск для канала по жалобе. Говори про состав, применение и собственные ощущения.</p>
+      <p>По бизнесу: не обещай конкретный доход и сроки. «Заработаешь столько-то за месяц» — заявление, которое нечем подтвердить.</p>
+    </div>
+  </section>
+
+  <section id="talk" hidden>
+    <div class="modetog" role="group" aria-label="Режим">
+      <button type="button" id="mRead" aria-pressed="true">Читать</button>
+      <button type="button" id="mTrain" aria-pressed="false">Тренировка</button>
+    </div>
+    <div id="readmode">
+      <div id="faq"></div>
+      <h2>Словарь</h2>
+      <div class="box"><dl id="gloss"></dl></div>
+    </div>
+    <div id="trainmode" hidden>
+      <p class="lede">Возражение на экране. Сформулируй ответ вслух, потом сверься.</p>
+      <div class="train" id="trainbox"></div>
+    </div>
+  </section>
+
+  <div class="cta">
+    <a class="reg" id="ref" href="#" target="_blank" rel="noopener">Зарегистрироваться →</a>
+    <a class="ask" id="ask" href="#" target="_blank" rel="noopener">Задать вопрос</a>
+  </div>
+  <footer>
+    <p>Цены и состав каталога — с открытого каталога atomy.ru, проверено 22.11.2026. Всего в каталоге 270 позиций, здесь 47 ходовых. Перед сделкой сверяй цену на карточке товара. Приложение партнёрское, не официальный ресурс компании.</p>
+  </footer>
+</main>
+
+<div class="bar" id="bar" hidden>
+  <div class="wrap barin">
+    <div>
+      <div class="sum" id="bsum">0 ₽</div>
+      <div class="sumpv" id="bpv">0 PV</div>
+    </div>
+    <button class="clr" id="clr" type="button">Очистить</button>
+    <button class="btn" id="bshow" type="button">Показать</button>
+  </div>
+</div>
+
+<script>
+// l = сколько месяцев в среднем хватает одной покупки
+const P=[
+{c:"R00001",n:"ХемоХИМ",g:9700,m:8800,pv:60000,k:"health",u:"Растительный концентрат",l:1,t:"хемохим hemohim флагман"},
+{c:"R00002",n:"ХемоХИМ набор, 4 упаковки",g:36300,m:33000,pv:240000,k:"health",u:"Концентрат, набор",l:4,t:"хемохим набор доставка",f:"Бесплатная доставка"},
+{c:"R00121",n:"Вайтал Колор Витамин С",g:2200,m:2000,pv:9000,k:"health",u:"Витамин C",l:2,t:"витамин с аскорбиновая"},
+{c:"R00111",n:"Аляска Е-Омега 3",g:2200,m:2000,pv:9000,k:"health",u:"Омега-3",l:2,t:"омега рыбий жир epa dha"},
+{c:"R00178",n:"Спирулина",g:2200,m:2000,pv:10000,k:"health",u:"Водоросль, таблетки",l:2,t:"спирулина водоросль белок"},
+{c:"R00164",n:"Пробиотик 10+",g:3100,m:2800,pv:15000,k:"health",u:"Пробиотик",l:1,t:"пробиотик кишечник жкт бактерии"},
+{c:"R00185",n:"Турмацин МСМ",g:3850,m:3500,pv:21000,k:"health",u:"Куркума и МСМ",l:1,t:"турмацин куркума мсм"},
+{c:"R00120",n:"Ферментированный концентрат Нони",g:6000,m:5500,pv:35000,k:"health",u:"Концентрат нони",l:1,t:"нони ферментированный сок"},
+{c:"R16085",n:"Kang Hwa пластырь: женьшень и масло удового дерева",g:360,m:330,pv:1000,k:"health",u:"Пластырь",l:1,t:"пластырь женьшень kang hwa",f:"Новинка"},
+{c:"R16086",n:"Kang Hwa пластырь: глюкозамин и женьшень",g:360,m:330,pv:1000,k:"health",u:"Пластырь",l:1,t:"пластырь глюкозамин kang hwa",f:"Новинка"},
+{c:"R16087",n:"Kang Hwa пластырь: опунция и ментол",g:360,m:330,pv:1000,k:"health",u:"Пластырь",l:1,t:"пластырь ментол опунция kang hwa",f:"Новинка"},
+
+{c:"R00305",n:"Ивнинг Кеар Пенка для умывания",g:850,m:750,pv:3000,k:"beauty",u:"Пенка для умывания",l:3,t:"пенка умывание лицо очищение evening"},
+{c:"R00325",n:"Ивнинг Кеар Очищение",g:850,m:750,pv:3000,k:"beauty",u:"Очищающее средство",l:3,t:"очищение лицо гидрофильное evening"},
+{c:"R00198",n:"Фэйм Питательный Крем",g:1750,m:1600,pv:11700,k:"beauty",u:"Крем для лица",l:3,t:"крем лицо питательный fame"},
+{c:"R00267",n:"Абсолют СеллАктив Питательный крем",g:3000,m:2700,pv:18000,k:"beauty",u:"Крем для лица",l:3,t:"крем абсолют celactive возраст"},
+{c:"R00757",n:"Гидра Сияние Набор",g:3400,m:3100,pv:23000,k:"beauty",u:"Набор для лица",l:4,t:"набор увлажнение сияние гидра"},
+{c:"R00467",n:"Дейли Маска Питание и Упругость",g:1000,m:900,pv:4000,k:"beauty",u:"Тканевая маска",l:1,t:"маска лицо упругость daily"},
+{c:"R00460",n:"Бальзам для Губ",g:450,m:400,pv:2000,k:"beauty",u:"Бальзам для губ",l:4,t:"губы бальзам гигиеничка"},
+{c:"R00261",n:"ББ крем",g:800,m:700,pv:3000,k:"beauty",u:"ББ-крем",l:4,t:"бб крем тон макияж"},
+{c:"R00266",n:"Хэлси Глоу база под макияж",g:1100,m:1000,pv:5000,k:"beauty",u:"База под макияж",l:4,t:"база праймер макияж glow"},
+{c:"R01422",n:"Тушь Сила Объема",g:1300,m:1200,pv:6000,k:"beauty",u:"Тушь для ресниц",l:3,t:"тушь ресницы объем макияж"},
+
+{c:"R00694",n:"Абсолют Шампунь",g:1450,m:1300,pv:6000,k:"hair",u:"Шампунь",l:3,t:"шампунь абсолют волосы мытье"},
+{c:"R00601",n:"Хербал Шампунь",g:1300,m:1200,pv:5500,k:"hair",u:"Шампунь",l:3,t:"шампунь травяной хербал волосы"},
+{c:"R00661",n:"Хербал Кондиционер",g:1300,m:1200,pv:5500,k:"hair",u:"Кондиционер",l:3,t:"кондиционер бальзам волосы хербал"},
+{c:"R00681",n:"Масло для Волос",g:1000,m:900,pv:4500,k:"hair",u:"Масло для волос",l:4,t:"масло волосы кончики уход"},
+{c:"R00693",n:"Скалпкеар Набор",g:2300,m:2100,pv:10000,k:"hair",u:"Набор для кожи головы",l:3,t:"скальп кожа головы набор scalp перхоть сухая"},
+
+{c:"R00523",n:"Зубная Паста, набор 4 шт",g:700,m:600,pv:3000,k:"hygiene",u:"Зубная паста",l:8,t:"зубная паста зубы набор"},
+{c:"R00505",n:"Зубная Паста, набор 5 шт",g:1900,m:1700,pv:4000,k:"hygiene",u:"Зубная паста",l:10,t:"зубная паста зубы набор"},
+{c:"R00509",n:"Паста для чувствительных зубов и дёсен, 3 шт",g:1200,m:1100,pv:5500,k:"hygiene",u:"Зубная паста",l:6,t:"чувствительные зубы десны паста"},
+{c:"R00510",n:"Зубные Щётки, 8 шт",g:1100,m:1000,pv:5000,k:"hygiene",u:"Зубные щётки",l:24,t:"щетка зубы"},
+{c:"R00520",n:"Оралкеар Набор",g:1550,m:1400,pv:7000,k:"hygiene",u:"Набор для полости рта",l:3,t:"ополаскиватель полость рта набор oral"},
+{c:"R00541",n:"Мыло для Рук",g:400,m:350,pv:900,k:"hygiene",u:"Жидкое мыло",l:2,t:"мыло руки"},
+{c:"R00535",n:"Очищение Эйдэм",g:550,m:500,pv:1800,k:"hygiene",u:"Мыло-очищение",l:2,t:"мыло очищение эйдем"},
+{c:"R00528",n:"Шампунь и гель для душа для мужчин",g:1550,m:1400,pv:6000,k:"hygiene",u:"2-в-1 для мужчин",l:2,t:"мужской шампунь гель душ 2в1"},
+{c:"R00631",n:"Хербал Гель для душа",g:1000,m:900,pv:3500,k:"hygiene",u:"Гель для душа",l:2,t:"гель душ тело хербал"},
+{c:"R00553",n:"Дорожный Набор 6",g:1000,m:900,pv:3000,k:"hygiene",u:"Дорожный набор",l:1,t:"дорожный набор поездка travel вахта"},
+
+{c:"R02309",n:"Капсулы для стирки, 100 шт",g:2200,m:2000,pv:9500,k:"home",u:"Капсулы для стирки",l:3,t:"стирка капсулы белье"},
+{c:"R00828",n:"Стиральный порошок, 500 г",g:700,m:600,pv:2500,k:"home",u:"Стиральный порошок",l:2,t:"стирка порошок белье"},
+{c:"R00826",n:"Листовой порошок",g:1000,m:900,pv:4500,k:"home",u:"Листы для стирки",l:2,t:"стирка листы порошок"},
+{c:"R02312",n:"Кислородный отбеливатель О2, 500 г",g:700,m:600,pv:2000,k:"home",u:"Отбеливатель",l:4,t:"отбеливатель пятна кислород стирка"},
+{c:"R00829",n:"Средство для мытья посуды",g:900,m:800,pv:3500,k:"home",u:"Для посуды",l:3,t:"посуда мытье средство"},
+{c:"R00832",n:"Губка Хозяйственная, 4 шт",g:500,m:450,pv:1300,k:"home",u:"Губки",l:2,t:"губка посуда уборка"},
+{c:"R00835",n:"Губка из нержавеющей стали, 2 шт",g:330,m:300,pv:750,k:"home",u:"Губки",l:3,t:"губка металл нержавейка посуда"},
+
+{c:"R00973",n:"Кофе Арабика, 50 шт",g:1300,m:1200,pv:2000,k:"food",u:"Кофе в стиках",l:2,t:"кофе арабика стики"},
+{c:"R00975",n:"Кофе Арабика Чёрный",g:1450,m:1300,pv:3500,k:"food",u:"Кофе чёрный",l:2,t:"кофе черный арабика без сахара"},
+
+{c:"R92495",n:"Пакет (большой)",g:22,m:20,pv:0,k:"other",u:"Пакет",l:0,t:"пакет упаковка"},
+{c:"R92496",n:"Пакет (маленький)",g:17,m:15,pv:0,k:"other",u:"Пакет",l:0,t:"пакет упаковка"}
+];
+
+const CATS=[["all","Всё"],["health","Здоровье"],["beauty","Лицо и макияж"],["hair","Волосы"],["hygiene","Гигиена"],["home","Дом"],["food","Кофе"],["other","Прочее"]];
+
+const SETS=[
+{n:"Хочу просто попробовать",why:"Расходники, которые человек и так покупает каждый месяц. Самый мягкий вход.",items:["R00523","R00601","R00541","R00832"]},
+{n:"Надоело переплачивать за бытовую химию",why:"Закрывает стирку, посуду и уборку одним заходом. Считается по расходу на месяц, а не по цене на полке.",items:["R02309","R00829","R00826","R02312","R00832","R00835"]},
+{n:"Уезжаю на вахту или в поездку",why:"Минимум объёма, ничего лишнего, всё помещается в сумку.",items:["R00553","R00528","R00523","R00975"]},
+{n:"Сухая кожа головы",why:"Уход за кожей головы плюс мягкое мытьё и масло на длину.",items:["R00693","R00601","R00681"]},
+{n:"Волосы — полный цикл",why:"Шампунь, кондиционер, масло и уход за кожей головы вместе.",items:["R00694","R00661","R00681","R00693"]},
+{n:"С чего начать по здоровью",why:"Три позиции, которые чаще всего берут первыми.",items:["R00001","R00111","R00121"]},
+{n:"Тренируюсь и много двигаюсь",why:"Что обычно спрашивают люди с регулярной нагрузкой.",items:["R00111","R00178","R00185"]},
+{n:"Вечерний уход за лицом",why:"Очищение в два шага, маска и питательный крем.",items:["R00325","R00305","R00467","R00198"]},
+{n:"Более плотный уход за лицом",why:"Когда базового крема уже мало и хочется насыщеннее.",items:["R00267","R00757","R00467"]},
+{n:"Зубы на всю семью",why:"Паста, щётки и набор для полости рта. Хватает надолго, расход копеечный.",items:["R00505","R00510","R00520","R00509"]}
+];
+
+const SAVE=[
+{id:"wash",n:"Стирка",code:"R02309",mo:3,now:700,note:"капсулы, 100 шт"},
+{id:"dish",n:"Мытьё посуды",code:"R00829",mo:3,now:350,note:"средство для посуды"},
+{id:"teeth",n:"Зубная паста",code:"R00523",mo:8,now:250,note:"набор 4 тюбика"},
+{id:"hair",n:"Шампунь",code:"R00601",mo:3,now:500,note:"Хербал шампунь"},
+{id:"body",n:"Гель для душа",code:"R00631",mo:2,now:500,note:"Хербал гель"},
+{id:"coffee",n:"Кофе",code:"R00973",mo:2,now:900,note:"50 стиков"}
+];
+
+const FAQ=[
+{q:"Это пирамида?",a:"Нет. В пирамиде доход идёт от взносов новых участников. Здесь доход считается от объёма проданного товара, а регистрация бесплатная — за вход платить не нужно. Товар можно просто покупать себе и никого не приводить."},
+{q:"Сколько стоит вход?",a:"Нисколько. Регистрация бесплатная, обязательных закупок и стартовых пакетов нет. Разница только в цене: после регистрации товар дешевле."},
+{q:"Почему так дёшево? Качество плохое?",a:"Принцип компании — высокое качество по низкой цене. Экономия идёт на отсутствии рекламы и посредников: нет телерекламы, нет розничных сетей, нет накрутки магазина. Эти деньги остаются в цене товара."},
+{q:"Чем отличается цена до и после регистрации?",a:"Разница обычно 100–900 ₽ на позицию. На корзине из четырёх-пяти товаров регистрация окупается сразу — поэтому её и предлагают до первой покупки, а не после."},
+{q:"Надо кого-то приводить?",a:"Нет. Большая часть зарегистрированных просто покупает себе дешевле. Приглашать — отдельное решение, а не обязанность."},
+{q:"А доставка?",a:"Доставка платная, у отдельных позиций и наборов — бесплатная. Статус заказа отслеживается на сайте компании."},
+{q:"Что если не подойдёт?",a:"У компании есть процедура возврата и обмена. Условия и сроки — на atomy.ru в разделе «Возврат/обмен»; уточняй до того, как обещаешь что-то клиенту."},
+{q:"Я уже покупаю похожее в магазине",a:"Сравни по расходу, а не по цене на полке. Капсулы для стирки — 100 штук, то есть 20 ₽ за стирку. Паста — четыре тюбика за 600 ₽. Считать надо на месяц использования."},
+{q:"Мне надо подумать",a:"Нормально. Что именно смущает — цена, состав или сама схема? Отвечу по этому пункту, а дальше решай сам. Ничего не горит, обязательств никаких."},
+{q:"У меня нет на это денег",a:"Тогда начни с того, на что деньги уже уходят. Порошок, паста и шампунь покупаются в любом случае — вопрос только где. Регистрация бесплатная, минимального заказа нет."}
+];
+
+const GLOSS=[
+["PV","Балл за покупку. На нём строится весь расчёт вознаграждения. В Атоми не сгорает в конце месяца."],
+["Цена до / после регистрации","Две цены на одну позицию. После бесплатной регистрации товар дешевле."],
+["Спонсор (апстрим)","Тот, кто зарегистрировал партнёра. Появляется в структуре над ним."],
+["Структура (даунлайн)","Все, кто зарегистрировался по твоей ссылке, и дальше по цепочке."],
+["Бинар","Две ветки — левая и правая. Вознаграждение считается по меньшей из них, поэтому развивают обе."],
+["Групповой объём","Сумма PV по ветке за период. Основа расчёта."],
+["Ранг (Mastership)","Ступень в маркетинг-плане. Выше ранг — больше бонусных пулов."],
+["Центр Атоми","Офис выдачи и обучения. Список на atomy.ru."]
+];
+
+const DEF={ref:"47158381",nm:"Руслан",tg:"uatomy"};
+let tab="catalog", cat="all", stCat="all", member=true, q="", sel=new Set(),
+    ref=DEF.ref, nm=DEF.nm, tg=DEF.tg, spend={}, bought={}, trainI=0, trainOpen=false;
+
+try{
+  const s=localStorage.getItem("atm-sel"); if(s) sel=new Set(JSON.parse(s));
+  const m=localStorage.getItem("atm-member"); if(m!==null) member=m==="1";
+  const t=localStorage.getItem("atm-theme"); if(t) document.documentElement.setAttribute("data-theme",t);
+  const r=localStorage.getItem("atm-ref"); if(r&&/^\d{5,12}$/.test(r)) ref=r;
+  const n=localStorage.getItem("atm-nm"); if(n) nm=n;
+  const g=localStorage.getItem("atm-tg"); if(g) tg=g;
+  const sp=localStorage.getItem("atm-spend"); if(sp) spend=JSON.parse(sp)||{};
+  const bo=localStorage.getItem("atm-bought"); if(bo) bought=JSON.parse(bo)||{};
+}catch(e){}
+try{
+  const u=new URLSearchParams(location.search);
+  const qr=u.get("ref"), qn=u.get("nm"), qt=u.get("tg");
+  if(qr&&/^\d{5,12}$/.test(qr)) ref=qr;
+  if(qn) nm=qn.slice(0,30);
+  if(qt) tg=qt.replace(/[^A-Za-z0-9_]/g,"").slice(0,40);
+}catch(e){}
+SAVE.forEach(s=>{if(typeof spend[s.id]!=="number") spend[s.id]=s.now;});
+
+const save=()=>{try{
+  localStorage.setItem("atm-sel",JSON.stringify([...sel]));
+  localStorage.setItem("atm-member",member?"1":"0");
+  localStorage.setItem("atm-ref",ref);
+  localStorage.setItem("atm-nm",nm);
+  localStorage.setItem("atm-tg",tg);
+  localStorage.setItem("atm-spend",JSON.stringify(spend));
+  localStorage.setItem("atm-bought",JSON.stringify(bought));
+}catch(e){}};
+const rub=n=>Math.round(n).toLocaleString("ru-RU")+" ₽";
+const price=p=>member?p.m:p.g;
+const byCode=c=>P.find(p=>p.c===c);
+const refUrl=()=>"https://m.atomy.ru/gate/join/easyreg/v2/"+ref;
+const tgUrl=()=>"https://t.me/"+tg;
+const plural=(n,a,b,c)=>{const n1=n%10,n2=n%100;return n1===1&&n2!==11?a:(n1>=2&&n1<=4&&(n2<10||n2>=20)?b:c);};
+
+function matches(p){
+  if(cat!=="all"&&p.k!==cat) return false;
+  if(!q) return true;
+  const s=(p.n+" "+p.c+" "+p.u+" "+p.t).toLowerCase();
+  return q.toLowerCase().split(/\s+/).every(w=>s.includes(w));
+}
+
+function postText(p){
+  return p.n+"\n\n"+p.u+". Код "+p.c+".\n\n"+
+    "Цена: "+p.g.toLocaleString("ru-RU")+" ₽ → "+p.m.toLocaleString("ru-RU")+" ₽ после бесплатной регистрации."+
+    (p.pv?" "+p.pv.toLocaleString("ru-RU")+" PV.":"")+"\n\n"+
+    "Карточка: https://www.atomy.ru/product/"+p.c+"\n"+
+    "Регистрация: "+refUrl()+"\n"+
+    "Вопросы: "+tgUrl();
+}
+
+function card(p){
+  const on=sel.has(p.c), saving=p.g-p.m;
+  return `<article class="card${on?" in":""}">
+    <h3 class="nm">${p.n}</h3>
+    <div class="meta">
+      <span class="tag">${p.u}</span>
+      ${p.f?`<span class="tag new">${p.f}</span>`:""}
+      <a href="https://www.atomy.ru/product/${p.c}" target="_blank" rel="noopener">${p.c} ↗</a>
+      ${saving>0?`<span>выгода ${saving} ₽</span>`:""}
+      <button class="mini" type="button" data-post="${p.c}">Пост</button>
+    </div>
+    <div class="right">
+      <div class="pr">${rub(price(p))}</div>
+      ${member&&saving>0?`<div class="was">${rub(p.g)}</div>`:""}
+      ${p.pv?`<div class="pv">${p.pv.toLocaleString("ru-RU")} PV</div>`:""}
+      <button class="add" type="button" data-add="${p.c}" aria-pressed="${on}" aria-label="${on?"Убрать":"Добавить"} ${p.n}">${on?"✓":"+"}</button>
+    </div>
+  </article>`;
+}
+
+function renderCatalog(){
+  const hits=P.filter(matches);
+  document.getElementById("list").innerHTML=hits.map(card).join("");
+  document.getElementById("empty").hidden=hits.length>0;
+  document.getElementById("cnt").textContent=hits.length===P.length?P.length+" позиций":hits.length+" из "+P.length;
+}
+
+function renderChips(){
+  document.getElementById("chips").innerHTML=CATS.map(([k,l])=>{
+    const n=k==="all"?P.length:P.filter(p=>p.k===k).length;
+    return `<button type="button" data-cat="${k}" aria-pressed="${cat===k}">${l} <span style="opacity:.6">${n}</span></button>`;
+  }).join("");
+}
+
+function renderSets(){
+  document.getElementById("setlist").innerHTML=SETS.map((s,i)=>{
+    const ps=s.items.map(byCode).filter(Boolean);
+    const sum=ps.reduce((a,p)=>a+price(p),0), pv=ps.reduce((a,p)=>a+p.pv,0);
+    return `<div class="set">
+      <h3>${s.n}</h3>
+      <p class="why">${s.why}</p>
+      <ul>${ps.map(p=>`<li>${p.n} — ${rub(price(p))}</li>`).join("")}</ul>
+      <div class="setfoot">
+        <div><div class="sum">${rub(sum)}</div><div class="sumpv">${pv.toLocaleString("ru-RU")} PV</div></div>
+        <button class="btn ghost" type="button" data-set="${i}">В подборку</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* stock */
+const DAY=86400000;
+function left(code){
+  const p=byCode(code), t=bought[code];
+  if(!p||!t||!p.l) return null;
+  const total=p.l*30.4*DAY, gone=Date.now()-t;
+  return {p, days:Math.round((total-gone)/DAY), pct:Math.max(0,Math.min(100,100-gone/total*100))};
+}
+function renderStock(){
+  const mine=Object.keys(bought).map(left).filter(Boolean).sort((a,b)=>a.days-b.days);
+  document.getElementById("stockmine").innerHTML = mine.length===0
+    ? `<p class="empty">Пока пусто. Отметь внизу, что уже купил — и приложение начнёт считать, когда пора повторить.</p>`
+    : mine.map(x=>{
+        const soon=x.days<=21;
+        const txt = x.days<0 ? `кончилось ${-x.days} ${plural(-x.days,"день","дня","дней")} назад`
+          : x.days===0 ? "заканчивается сегодня"
+          : `осталось ~${x.days} ${plural(x.days,"день","дня","дней")}`;
+        return `<div class="st${soon?" soon":""}">
+          <div><p class="snm">${x.p.n}</p><div class="sinfo">${soon?`<b>${txt}</b>`:txt} · ${rub(price(x.p))}</div></div>
+          <div style="display:grid;gap:4px;justify-items:end">
+            <button class="mini" type="button" data-again="${x.p.c}">Купил снова</button>
+            <button class="mini" type="button" data-forget="${x.p.c}">Убрать</button>
+          </div>
+          <div class="track"><i class="${soon?"low":""}" style="width:${x.pct}%"></i></div>
+        </div>`;
+      }).join("");
+
+  document.getElementById("stchips").innerHTML=CATS.filter(([k])=>k!=="other").map(([k,l])=>
+    `<button type="button" data-stcat="${k}" aria-pressed="${stCat===k}">${l}</button>`).join("");
+
+  const pool=P.filter(p=>p.l>0&&(stCat==="all"||p.k===stCat));
+  document.getElementById("stocklist").innerHTML=pool.map(p=>
+    `<div class="st">
+      <div><p class="snm">${p.n}</p><div class="sinfo">хватает ~${p.l} ${plural(p.l,"месяц","месяца","месяцев")} · ${rub(price(p))}</div></div>
+      <button class="mini" type="button" data-bought="${p.c}">${bought[p.c]?"Обновить":"Купил"}</button>
+    </div>`).join("");
+}
+
+function monthly(s){const p=byCode(s.code); return p? price(p)/s.mo : 0;}
+function svTotals(){
+  const at=SAVE.reduce((a,s)=>a+monthly(s),0);
+  const now=SAVE.reduce((a,s)=>a+(spend[s.id]||0),0);
+  return {at,now,diff:(now-at)*12};
+}
+function svResult(){
+  const {diff}=svTotals();
+  const el=document.getElementById("svYear"), cap=document.getElementById("svCap");
+  if(diff>0){el.textContent=rub(diff);cap.textContent="экономия за год на этих шести категориях";}
+  else if(diff<0){el.textContent=rub(-diff);cap.textContent="настолько дороже за год — на этих категориях выгоды нет";}
+  else{el.textContent="0 ₽";cap.textContent="разницы нет";}
+}
+function renderSave(){
+  document.getElementById("svbox").innerHTML=SAVE.map(s=>
+    `<div class="sv-row">
+      <div class="sv-name">${s.n}<small>${s.note} — хватает ~${s.mo} мес.</small></div>
+      <div class="sv-at">${rub(monthly(s))}<br><span style="font-weight:400;font-size:.7rem;color:var(--muted)">в месяц</span></div>
+      <input class="num" type="number" min="0" step="50" inputmode="numeric" id="sp-${s.id}" data-sp="${s.id}" value="${spend[s.id]}" aria-label="Сколько тратишь сейчас на ${s.n}">
+    </div>`).join("")
+    +`<p class="who" style="margin-top:10px">Слева — цена Атоми в пересчёте на месяц. Справа — впиши, сколько тратишь сейчас.</p>`;
+  svResult();
+}
+function saveText(){
+  const {at,now,diff}=svTotals();
+  return "Сравнение расходов в месяц:\n"+
+    SAVE.map(s=>`${s.n}: сейчас ${Math.round(spend[s.id]||0)} ₽ → Атоми ${Math.round(monthly(s))} ₽`).join("\n")+
+    `\n\nИтого в месяц: ${Math.round(now)} ₽ → ${Math.round(at)} ₽`+
+    `\nЗа год разница: ${Math.round(diff)} ₽`+
+    `\n\nРегистрация: ${refUrl()}\nВопросы: ${tgUrl()}`;
+}
+
+function renderPvTable(){
+  const rows=[...P].filter(p=>p.pv>0).map(p=>({...p,r:p.pv/p.m})).sort((a,b)=>b.r-a.r).slice(0,12);
+  document.getElementById("pvtable").innerHTML=
+    `<thead><tr><th>Товар</th><th>Цена</th><th>PV</th><th>PV на ₽</th></tr></thead><tbody>`+
+    rows.map(p=>`<tr><td>${p.n}</td><td class="n">${rub(p.m)}</td><td class="n">${p.pv.toLocaleString("ru-RU")}</td><td class="n">${p.r.toFixed(1)}</td></tr>`).join("")+
+    `</tbody>`;
+}
+
+function renderTalk(){
+  document.getElementById("faq").innerHTML=FAQ.map(f=>
+    `<div class="script"><p class="qq">${f.q}</p><p>${f.a}</p><button class="copy" type="button" data-copy="${encodeURIComponent(f.a)}">Скопировать ответ</button></div>`).join("");
+  document.getElementById("gloss").innerHTML=GLOSS.map(([t,d])=>`<dt>${t}</dt><dd>${d}</dd>`).join("");
+}
+function renderTrain(){
+  const f=FAQ[trainI];
+  document.getElementById("trainbox").innerHTML=
+    `<p class="obj">«${f.q}»</p>`+
+    (trainOpen?`<p class="ans">${f.a}</p>`:"")+
+    `<button class="btn wide" type="button" id="trainbtn">${trainOpen?"Следующее возражение":"Показать ответ"}</button>`;
+  document.getElementById("trainbtn").addEventListener("click",()=>{
+    if(trainOpen){let i=trainI;while(i===trainI&&FAQ.length>1)i=Math.floor(Math.random()*FAQ.length);trainI=i;trainOpen=false;}
+    else trainOpen=true;
+    renderTrain();
+  });
+}
+
+function renderRef(){
+  document.getElementById("ref").href=refUrl();
+  const a=document.getElementById("ask");
+  a.href=tgUrl(); a.textContent="Задать вопрос — "+(nm||"консультант")+" @"+tg;
+  const set=(id,v)=>{const el=document.getElementById(id); if(document.activeElement!==el) el.value=v;};
+  set("refin",ref); set("nmin",nm); set("tgin",tg);
+  document.getElementById("refwho").innerHTML = ref===DEF.ref
+    ? `Сейчас приглашает номер <b>${DEF.ref}</b> — ${DEF.nm}. Впиши свои данные, если приложение твоё.`
+    : `Приглашает <b>${nm||ref}</b>, номер <b>${ref}</b>. Все кнопки ведут на него.`;
+}
+
+function renderBar(){
+  const ps=[...sel].map(byCode).filter(Boolean);
+  const sum=ps.reduce((a,p)=>a+price(p),0), pv=ps.reduce((a,p)=>a+p.pv,0);
+  document.getElementById("bar").hidden=ps.length===0;
+  document.getElementById("bsum").textContent=rub(sum)+" · "+ps.length+" поз.";
+  document.getElementById("bpv").textContent=pv.toLocaleString("ru-RU")+" PV";
+  document.getElementById("calcbox").innerHTML=ps.length===0
+    ? `<p style="color:var(--muted);margin:0">Подборка пуста. Открой каталог и добавь товары плюсиком.</p>`
+    : `<div class="tablewrap"><table><tbody>${ps.map(p=>`<tr><td>${p.n}</td><td class="n">${rub(price(p))}</td><td class="n">${p.pv.toLocaleString("ru-RU")} PV</td></tr>`).join("")}<tr><td><strong>Итого</strong></td><td class="n"><strong>${rub(sum)}</strong></td><td class="n"><strong>${pv.toLocaleString("ru-RU")} PV</strong></td></tr></tbody></table></div>`;
+}
+
+function renderAll(){renderChips();renderCatalog();renderSets();renderStock();renderSave();renderPvTable();renderRef();renderBar();}
+
+function flash(btn,txt,back){const o=back||btn.textContent;btn.textContent=txt;setTimeout(()=>{btn.textContent=o},1500);}
+function toClip(txt,btn,back){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>flash(btn,"Скопировано ✓",back)).catch(()=>flash(btn,"Не вышло",back));
+  } else flash(btn,"Не вышло",back);
+}
+
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{
+  tab=b.dataset.tab;
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x===b));
+  ["catalog","sets","stock","save","biz","talk"].forEach(id=>document.getElementById(id).hidden=(id!==tab));
+  if(tab==="stock") renderStock();
+  window.scrollTo({top:0,behavior:"instant"});
+}));
+document.getElementById("q").addEventListener("input",e=>{
+  q=e.target.value.trim();
+  if(tab!=="catalog") document.querySelector('nav button[data-tab="catalog"]').click();
+  renderCatalog();
+});
+document.getElementById("chips").addEventListener("click",e=>{
+  const b=e.target.closest("[data-cat]"); if(!b) return;
+  cat=b.dataset.cat; renderChips(); renderCatalog();
+});
+document.getElementById("svbox").addEventListener("input",e=>{
+  const i=e.target.closest("[data-sp]"); if(!i) return;
+  const v=parseFloat(i.value); spend[i.dataset.sp]=isNaN(v)||v<0?0:v; save(); svResult();
+});
+document.getElementById("svCopy").addEventListener("click",e=>toClip(saveText(),e.currentTarget,"Скопировать расчёт текстом"));
+document.getElementById("refsave").addEventListener("click",e=>{
+  const v=document.getElementById("refin").value.replace(/\D/g,"");
+  if(!/^\d{5,12}$/.test(v)){flash(e.currentTarget,"В номере только цифры","Сохранить");return;}
+  ref=v;
+  nm=document.getElementById("nmin").value.trim().slice(0,30)||DEF.nm;
+  tg=document.getElementById("tgin").value.trim().replace(/^@/,"").replace(/[^A-Za-z0-9_]/g,"")||DEF.tg;
+  save(); renderRef(); renderCatalog(); flash(e.currentTarget,"Сохранено ✓","Сохранить");
+});
+document.getElementById("refcopy").addEventListener("click",e=>{
+  toClip(location.origin+location.pathname+"?ref="+ref+"&nm="+encodeURIComponent(nm)+"&tg="+tg,
+    e.currentTarget,"Скопировать свою ссылку на приложение");
+});
+document.getElementById("mRead").addEventListener("click",()=>{
+  document.getElementById("mRead").setAttribute("aria-pressed","true");
+  document.getElementById("mTrain").setAttribute("aria-pressed","false");
+  document.getElementById("readmode").hidden=false; document.getElementById("trainmode").hidden=true;
+});
+document.getElementById("mTrain").addEventListener("click",()=>{
+  document.getElementById("mTrain").setAttribute("aria-pressed","true");
+  document.getElementById("mRead").setAttribute("aria-pressed","false");
+  document.getElementById("readmode").hidden=true; document.getElementById("trainmode").hidden=false;
+  trainOpen=false; renderTrain();
+});
+document.body.addEventListener("click",e=>{
+  const a=e.target.closest("[data-add]");
+  if(a){const c=a.dataset.add; sel.has(c)?sel.delete(c):sel.add(c); save(); renderCatalog(); renderBar(); return;}
+  const s=e.target.closest("[data-set]");
+  if(s){SETS[+s.dataset.set].items.forEach(c=>sel.add(c)); save(); renderCatalog(); renderBar(); flash(s,"Добавлено ✓","В подборку"); return;}
+  const cp=e.target.closest("[data-copy]");
+  if(cp){toClip(decodeURIComponent(cp.dataset.copy),cp,"Скопировать ответ"); return;}
+  const po=e.target.closest("[data-post]");
+  if(po){const p=byCode(po.dataset.post); if(p) toClip(postText(p),po,"Пост"); return;}
+  const bg=e.target.closest("[data-bought]");
+  if(bg){bought[bg.dataset.bought]=Date.now(); save(); renderStock(); return;}
+  const ag=e.target.closest("[data-again]");
+  if(ag){bought[ag.dataset.again]=Date.now(); save(); renderStock(); return;}
+  const fg=e.target.closest("[data-forget]");
+  if(fg){delete bought[fg.dataset.forget]; save(); renderStock(); return;}
+  const sc=e.target.closest("[data-stcat]");
+  if(sc){stCat=sc.dataset.stcat; renderStock(); return;}
+});
+function setPrice(v){member=v;save();
+  document.getElementById("pMember").setAttribute("aria-pressed",v);
+  document.getElementById("pGuest").setAttribute("aria-pressed",!v);
+  renderCatalog();renderSets();renderStock();renderSave();renderPvTable();renderBar();}
+document.getElementById("pMember").addEventListener("click",()=>setPrice(true));
+document.getElementById("pGuest").addEventListener("click",()=>setPrice(false));
+document.getElementById("clr").addEventListener("click",()=>{sel.clear();save();renderCatalog();renderBar();});
+document.getElementById("bshow").addEventListener("click",()=>{
+  document.querySelector('nav button[data-tab="biz"]').click();
+  document.getElementById("calcbox").scrollIntoView({block:"center",behavior:"smooth"});
+});
+document.getElementById("theme").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const dark=window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const next=cur? (cur==="dark"?"light":"dark") : (dark?"light":"dark");
+  document.documentElement.setAttribute("data-theme",next);
+  try{localStorage.setItem("atm-theme",next)}catch(e){}
+});
+
+setPrice(member);
+renderTalk();
+renderAll();
+</script>
